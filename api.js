@@ -1,6 +1,11 @@
 const Pool = require('pg').Pool
 const types = require('pg').types
 
+/**
+ * MIGRAR el accesso a la bbdd a ORM con Sequelize
+ */
+
+
 const postgresNumericIdentifier = 1700
 const postgresTimestamptzIdentifier = 1184
 types.setTypeParser(postgresNumericIdentifier, function(val) {
@@ -13,7 +18,7 @@ types.setTypeParser(postgresTimestamptzIdentifier, function(val) {
 
 const pool = new Pool({
   user: 'pi',
-  host: '192.168.0.77',
+  host: '190.18.169.205',
   database: 'invernaderos',
   password: 'raspberry',
   port: 5432
@@ -94,11 +99,11 @@ const getLux = async (req, res) => {
 function getSQLFilters(req) {
     var where = []
 
-    if (req.body.locationIds != undefined && req.body.locationIds.length > 0) { where.push(getLocationFilter(req.body.locationIds))}
-    if (req.body.fromDate != undefined && req.body.fromDate != "") { where.push(" created_date >= '" + req.body.fromDate + "'")}
-    if (req.body.toDate != undefined && req.body.toDate != "") { where.push(" created_date <= '" + req.body.toDate + "'")}
-    if (req.body.fromValue != undefined) { where.push(" value >= " + req.body.fromValue)}
-    if (req.body.toValue != undefined) { where.push(" value <= " + req.body.toValue)}
+    if (req.query.locationIds != undefined && req.query.locationIds.length > 0) { where.push(getLocationFilter(req.query.locationIds))}
+    if (req.query.fromDate != undefined && req.query.fromDate != "") { where.push(" created_date >= '" + req.query.fromDate + "'")}
+    if (req.query.toDate != undefined && req.query.toDate != "") { where.push(" created_date <= '" + req.query.toDate + "'")}
+    if (req.query.fromValue != undefined) { where.push(" value >= " + req.query.fromValue)}
+    if (req.query.toValue != undefined) { where.push(" value <= " + req.query.toValue)}
 
     var query = ""
     if (where.length > 0) {

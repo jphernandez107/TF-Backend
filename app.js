@@ -17,9 +17,9 @@ app.listen(port, () => {
   console.log('Server running on port ' + port + '.')
 })
 
-app.post('/ambient-temperature/', api.getAmbientTemperature)
-app.get('/ambient-humidity/', api.getAmbientHumidity)
-app.get('/soil-humidity/', api.getSoilHumidity)
-app.get('/lux/', api.getLux)
+app.get('/ambient-temperature/filter', api.getAmbientTemperature)
+app.get('/ambient-humidity/filter', api.getAmbientHumidity)
+app.get('/soil-humidity/filter', api.getSoilHumidity)
+app.get('/lux/filter', api.getLux)
 
 
