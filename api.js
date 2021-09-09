@@ -28,13 +28,19 @@ const getAmbientTemperature = async (req, res) => {
     const filterParams = getSQLFilters(req)
     const table = "temperatura_ambiente"
     var sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
-    sqlQuery += table + " " + filterParams + " GROUP BY date ORDER BY date DESC"
-    // console.log(sqlQuery)
+    sqlQuery += table + " AS sensorTable INNER JOIN locations ON locations.id = sensorTable.location " + filterParams + " GROUP BY date ORDER BY date DESC"
+    console.log(sqlQuery)
 
     pool.query(sqlQuery)
     .then(results => {
-        console.log(results.rows)
-        res.status(200).json(results.rows)
+        let json = {
+            data: results.rows,
+            title: "Temperatura ambiente",
+            unit: "°C",
+            max: null,
+            min: null
+        }
+        res.status(200).json(json)
     })
     .catch(error => {
         console.log(error)
@@ -45,12 +51,19 @@ const getAmbientHumidity = async (req, res) => {
     const filterParams = getSQLFilters(req)
     const table = "humedad_ambiente"
     var sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
-    sqlQuery += table + " " + filterParams + " GROUP BY date ORDER BY date DESC"
+    sqlQuery += table + " AS sensorTable INNER JOIN locations ON locations.id = sensorTable.location " + filterParams + " GROUP BY date ORDER BY date DESC"
     //console.log(sqlQuery)
 
     pool.query(sqlQuery)
     .then(results => {
-        res.status(200).json(results.rows)
+        let json = {
+            data: results.rows,
+            title: "Humedad ambiente",
+            unit: "%",
+            max: 100,
+            min: 0
+        }
+        res.status(200).json(json)
     })
     .catch(error => {
         console.log(error)
@@ -61,12 +74,19 @@ const getSoilHumidity = async (req, res) => {
     const filterParams = getSQLFilters(req)
     const table = "humedad_suelo"
     var sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
-    sqlQuery += table + " " + filterParams + " GROUP BY date ORDER BY date DESC"
+    sqlQuery += table + " AS sensorTable INNER JOIN locations ON locations.id = sensorTable.location " + filterParams + " GROUP BY date ORDER BY date DESC"
     // console.log(sqlQuery)
 
     pool.query(sqlQuery)
     .then(results => {
-        res.status(200).json(results.rows)
+        let json = {
+            data: results.rows,
+            title: "Humedad de suelo",
+            unit: "%",
+            max: 100,
+            min: 0
+        }
+        res.status(200).json(json)
     })
     .catch(error => {
         console.log(error)
@@ -77,12 +97,19 @@ const getLux = async (req, res) => {
     const filterParams = getSQLFilters(req)
     const table = "luz"
     var sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
-    sqlQuery += table + " " + filterParams + " GROUP BY date ORDER BY date DESC"
+    sqlQuery += table + " AS sensorTable INNER JOIN locations ON locations.id = sensorTable.location " + filterParams + " GROUP BY date ORDER BY date DESC"
     //console.log(sqlQuery)
 
     pool.query(sqlQuery)
     .then(results => {
-        res.status(200).json(results.rows)
+        let json = {
+            data: results.rows,
+            title: "Intensidad de luz",
+            unit: "lux",
+            max: null,
+            min: null
+        }
+        res.status(200).json(json)
     })
     .catch(error => {
         console.log(error)
