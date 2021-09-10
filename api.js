@@ -12,7 +12,7 @@ types.setTypeParser(postgresNumericIdentifier, function(val) {
     return parseFloat(val)
 })
 types.setTypeParser(postgresTimestamptzIdentifier, function(val) {
-    var date = new Date(Date.parse(val)).toLocaleString("es-AR")
+    let date = new Date(Date.parse(val)).toLocaleString("es-AR")
     return date
 })
 
@@ -27,7 +27,7 @@ const pool = new Pool({
 const getAmbientTemperature = async (req, res) => {
     const filterParams = getSQLFilters(req)
     const table = "temperatura_ambiente"
-    var sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
+    let sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
     sqlQuery += table + " AS sensorTable INNER JOIN locations ON locations.id = sensorTable.location " + filterParams + " GROUP BY date ORDER BY date DESC"
     console.log(sqlQuery)
 
@@ -50,7 +50,7 @@ const getAmbientTemperature = async (req, res) => {
 const getAmbientHumidity = async (req, res) => {
     const filterParams = getSQLFilters(req)
     const table = "humedad_ambiente"
-    var sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
+    let sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
     sqlQuery += table + " AS sensorTable INNER JOIN locations ON locations.id = sensorTable.location " + filterParams + " GROUP BY date ORDER BY date DESC"
     //console.log(sqlQuery)
 
@@ -73,7 +73,7 @@ const getAmbientHumidity = async (req, res) => {
 const getSoilHumidity = async (req, res) => {
     const filterParams = getSQLFilters(req)
     const table = "humedad_suelo"
-    var sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
+    let sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
     sqlQuery += table + " AS sensorTable INNER JOIN locations ON locations.id = sensorTable.location " + filterParams + " GROUP BY date ORDER BY date DESC"
     // console.log(sqlQuery)
 
@@ -96,7 +96,7 @@ const getSoilHumidity = async (req, res) => {
 const getLux = async (req, res) => {
     const filterParams = getSQLFilters(req)
     const table = "luz"
-    var sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
+    let sqlQuery = "SELECT ROUND(AVG(value), 2) as value, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) as date FROM " // Promedio por minuto
     sqlQuery += table + " AS sensorTable INNER JOIN locations ON locations.id = sensorTable.location " + filterParams + " GROUP BY date ORDER BY date DESC"
     //console.log(sqlQuery)
 
@@ -125,25 +125,25 @@ const getLocationDetails = async (req, res) => {
 
     pool.query(sqlQuery)
     .then(results => {
-        var greenhouses = []
-        for(var loc of results.rows) { // Armamos el array de objetos anidados
-            var gh = greenhouses.find(gh => gh.greenhouse == loc.greenhouse)
+        let greenhouses = []
+        for(let loc of results.rows) { // Armamos el array de objetos anidados
+            let gh = greenhouses.find(gh => gh.greenhouse == loc.greenhouse)
             if (gh != undefined) {
-                var section = gh.sections.find(sect => sect.section == loc.section)
+                let section = gh.sections.find(sect => sect.section == loc.section)
                 if (section != undefined) {
-                    var sector = section.sectors.find(sect => sect.sector == loc.sector)
+                    let sector = section.sectors.find(sect => sect.sector == loc.sector)
                     if (sector == undefined) {
                         section.sectors.push({sector: loc.sector})
                     } 
                 } else {
-                    var sectors = []
+                    let sectors = []
                     sectors.push({sector: loc.sector})
                     gh.sections.push({section: loc.section, sectors: sectors})
                 }
             } else {
-                var sectors = []
+                let sectors = []
                 sectors.push({sector: loc.sector})
-                var sections = []
+                let sections = []
                 sections.push({section: loc.section, sectors:sectors})
                 greenhouses.push({greenhouse: loc.greenhouse, sections:sections})
             }
@@ -176,7 +176,7 @@ const getRealTimeData = async (req, res) => {
     let soil_hum = "(SELECT 'soil_humidity' AS sensor, ROUND(AVG(value), 2) AS VALUE, location, greenhouse, section, sector, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) AS date FROM humedad_suelo AS sensorTable INNER JOIN locations ON locations.id = sensorTable.location " + filterParams + " GROUP BY date, location, greenhouse, section, sector ORDER BY date DESC LIMIT 1)"
     let lux = "(SELECT 'lux' AS sensor, ROUND(AVG(value), 2) AS VALUE, location, greenhouse, section, sector, to_timestamp(floor((extract('epoch' from created_date) / 60 )) * 60) AS date FROM luz AS sensorTable INNER JOIN locations ON locations.id = sensorTable.location " + filterParams + " GROUP BY date, location, greenhouse, section, sector ORDER BY date DESC LIMIT 1);"
 
-    var sqlQuery = room_temp + " union " + room_hum + " union " + soil_hum + " union " + lux;
+    let sqlQuery = room_temp + " union " + room_hum + " union " + soil_hum + " union " + lux;
     console.log(sqlQuery)
 
     pool.query(sqlQuery)
@@ -202,7 +202,7 @@ const getRealTimeData = async (req, res) => {
  */
 
 function getSQLFilters(req) {
-    var where = []
+    let where = []
 
     console.log(req.query)
 
@@ -213,7 +213,7 @@ function getSQLFilters(req) {
     if (req.query.fromValue != undefined) { where.push(" value >= " + req.query.fromValue)}
     if (req.query.toValue != undefined) { where.push(" value <= " + req.query.toValue)}
 
-    var query = ""
+    let query = ""
     if (where.length > 0) {
         query = " WHERE " + where.join(" AND ")
     }
@@ -222,11 +222,11 @@ function getSQLFilters(req) {
 }
 
 function getLocationFilter(locationIdArray, filterParam = "location") {
-    var locations = []
+    let locations = []
     for (let locationId of locationIdArray) {
         locations.push(filterParam + " = '" + locationId + "'")
     }
-    var locationSQL = ""
+    let locationSQL = ""
     if(locations.length > 0) {
         locationSQL = " (" + locations.join(" OR ") + ") "
     }
@@ -234,9 +234,9 @@ function getLocationFilter(locationIdArray, filterParam = "location") {
 }
 
 function getLocationQuery(req, filterParam = "locations.") {
-    var greenhouses = []
-    var sections = []
-    var sectors = []
+    let greenhouses = []
+    let sections = []
+    let sectors = []
     if (req.query.greenhouses != undefined)
         for (let greenhouse of req.query.greenhouses) 
             greenhouses.push(filterParam + "greenhouse = '" + greenhouse + "'")
@@ -247,12 +247,12 @@ function getLocationQuery(req, filterParam = "locations.") {
         for (let sector of req.query.sectors)
             sectors.push(filterParam + "sector = '" + sector + "'")
 
-    var locations = []
+    let locations = []
     if (greenhouses.length > 0) locations.push(" (" + greenhouses.join(" OR ") + ") ")
     if (sections.length > 0) locations.push(" (" + sections.join(" OR ") + ") ")
     if (sectors.length > 0) locations.push(" (" + sectors.join(" OR ") + ") ")
     
-    var locationSQL = ""
+    let locationSQL = ""
     if (locations.length > 0) locationSQL = " (" + locations.join(" AND ") + ") "
 
     return locationSQL
@@ -270,13 +270,13 @@ function getLocationQuery(req, filterParam = "locations.") {
  */
 
  function getSQLFiltersLocations(req) {
-    var where = []
+    let where = []
 
     if (req.query.greenhouses != undefined && req.query.greenhouses.length > 0) { where.push(getLocationFilter(req.query.greenhouses, "greenhouse"))}
     if (req.query.sections != undefined && req.query.sections.length > 0) { where.push(getLocationFilter(req.query.sections, "section"))}
     if (req.query.sectors != undefined && req.query.sectors.length > 0) { where.push(getLocationFilter(req.query.sectors, "sector"))}
 
-    var query = ""
+    let query = ""
     if (where.length > 0) {
         query = " WHERE " + where.join(" AND ")
     }
