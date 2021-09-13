@@ -38,7 +38,8 @@ const getAmbientTemperature = async (req, res) => {
             title: "Temperatura ambiente",
             unit: "°C",
             max: null,
-            min: null
+            min: null,
+            chartIcon: "fas fa-thermometer-half"
         }
         res.status(200).json(json)
     })
@@ -61,7 +62,8 @@ const getAmbientHumidity = async (req, res) => {
             title: "Humedad ambiente",
             unit: "%",
             max: 100,
-            min: 0
+            min: 0,
+            chartIcon: "fas fa-humidity"
         }
         res.status(200).json(json)
     })
@@ -84,7 +86,8 @@ const getSoilHumidity = async (req, res) => {
             title: "Humedad de suelo",
             unit: "%",
             max: 100,
-            min: 0
+            min: 0,
+            chartIcon: "fas fa-seedling"
         }
         res.status(200).json(json)
     })
@@ -107,7 +110,8 @@ const getLux = async (req, res) => {
             title: "Intensidad de luz",
             unit: "lux",
             max: null,
-            min: null
+            min: null,
+            chartIcon: "fas fa-cloud-sun"
         }
         res.status(200).json(json)
     })
