@@ -123,7 +123,6 @@ const getLux = async (req, res) => {
 const getLocationDetails = async (req, res) => {
     const filterParams = getSQLFiltersLocations(req)
     const table = "locations"
-    // TODO: Filter disctinct values to get only the sectors/sections/gh unique values
     const sqlQuery = "SELECT * from " + table + " " + filterParams;
     // console.log(sqlQuery)
 
@@ -149,7 +148,12 @@ const getLocationDetails = async (req, res) => {
                 sectors.push({sector: loc.sector})
                 let sections = []
                 sections.push({section: loc.section, sectors:sectors})
-                greenhouses.push({greenhouse: loc.greenhouse, sections:sections})
+                greenhouses.push({
+                    greenhouse: loc.greenhouse, 
+                    sections:sections, 
+                    name: "Invernadero " + loc.greenhouse,
+                    href: "/greenhouse-" + loc.greenhouse.toLowerCase(), 
+                    id: loc.greenhouse})
             }
         }
         greenhouses.sort(orderGreenhouses)
