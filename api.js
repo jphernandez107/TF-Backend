@@ -18,6 +18,7 @@ types.setTypeParser(postgresTimestamptzIdentifier, function(val) {
 })
 
 const getDataBySensorByLocation = async (req, res) => { 
+    const secondsForAverageData = getSecondsForAverageData(req.query)
     return Reading
         .findAll({
             include: [
@@ -32,7 +33,7 @@ const getDataBySensorByLocation = async (req, res) => {
             ],
             attributes: [
                 [Sequelize.fn('ROUND', Sequelize.fn('AVG', Sequelize.col('value')), 2), 'value'], 
-                [Sequelize.literal("to_timestamp(floor((extract('epoch' from \"Reading\".\"created_date\") / 60 )) * 60)"), 'date']],
+                [Sequelize.literal(`to_timestamp(floor((extract('epoch' from \"Reading\".\"created_date\") / ${secondsForAverageData} )) * ${secondsForAverageData})`), 'date']],
                 group: ['date', '"Sensor".id', '"Location".id'],
             order: [
                 [Sequelize.literal('"date" DESC')]
@@ -332,5 +333,18 @@ function addSensorToLocation(sensor, greenhouse, section, sector) {
             }
         }
     }
+
+}
+
+function getSecondsForAverageData(query) {
+    let toDate = new Date()
+    let fromDate = new Date().setDate(toDate.getDate() - 1)
+    if (query.toDate) toDate = getDateFromString(query.toDate)
+    if (query.fromDate) fromDate = getDateFromString(query.fromDate)
+
+    let differenceInDays = (toDate - fromDate) / (1000 * 3600 * 24)
+    if (differenceInDays <= 1) differenceInDays = 1
+
+    return 100 * differenceInDays
 
 }
