@@ -35,7 +35,8 @@ module.exports = {
     host: DB_HOST,
     dialect: "postgres",
     define: {
-      timestamps: false
+      timestamps: false,
+      underscored: true
     }
   }
 }
