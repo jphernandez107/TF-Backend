@@ -20,5 +20,6 @@ app.listen(port, () => {
 app.get('/data/filter', api.getDataBySensorByLocation)
 app.get('/locations/filter', api.getLocationDetails)
 app.get('/real-time/filter', api.getRealTimeData)
+app.get('/locations/real-time/filter', api.getLocationWithRealTimeData)
 
 

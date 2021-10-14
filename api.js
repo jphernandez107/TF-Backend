@@ -168,6 +168,108 @@ const getRealTimeData = async (req, res) => {
 
 }
 
+const getLocationWithRealTimeData = async (req, res) => { 
+
+    return Reading
+        .findAll({
+            include: [
+                {
+                    model: Location,
+                    where: whereLocation(req.query),
+                    attributes: [
+                        ['id', 'id'],
+                        ['greenhouse', 'greenhouse'],
+                        ['section', 'section'],
+                        ['sector', 'sector']
+                    ]
+                },
+                {
+                    model: Sensor,
+                    where: whereSensor(req.query),
+                    attributes: [
+                        ['id', 'id'],
+                        ['name', 'name']
+                    ]
+                }
+            ],
+            attributes: [
+                [Sequelize.fn('ROUND', Sequelize.fn('AVG', Sequelize.col('"Reading"."value"')), 2), 'value'],
+                [Sequelize.fn('MAX', Sequelize.col('created_date')), 'date']],
+            group: ['"Sensor"."id"', '"Sensor"."name"', '"Location"."id"'],
+            where: whereClause(req.query)
+        })
+        .then( readings => {
+            // let sensors = readings.map((read) => read.dataValues)
+            // console.log(reads)
+            // res.status(200).json(reads)
+
+            let sensors = readings.map((read) => { 
+                let json = {}
+                json['sensor'] = read.dataValues.Sensor.dataValues
+                json.sensor['value'] = read.dataValues.value
+                json.sensor['date'] = read.dataValues.date
+                json['location'] = read.dataValues.Location.dataValues
+                return json
+            })
+
+            // res.status(200).json(sensors)
+            
+            Location
+                .findAll({
+                    include: [],
+                    where: whereLocation(req.query)
+                })
+                .then(readings => {
+                    let results = readings.map((read) => { return read.dataValues })
+                    let greenhouses = []
+                    for (let sensor of sensors) {
+                        for(let loc of results) { // Armamos el array de objetos anidados
+                            let gh = greenhouses.find(gh => gh.greenhouse == loc.greenhouse)
+                            if (gh != undefined) {
+                                let section = gh.sections.find(sect => sect.section == loc.section)
+                                if (section != undefined) {
+                                    let sector = section.sectors.find(sect => sect.sector == loc.sector)
+                                    if (sector != undefined) {
+                                        addSensorToLocation(sensor, gh, section, sector)
+                                    } else {
+                                        addSensorToLocation(sensor, gh, section, loc.sector)
+                                        section.sectors.push({sector: loc.sector})
+                                    } 
+                                } else {
+                                    addSensorToLocation(sensor, gh, loc.section, null)
+                                    let sectors = []
+                                    sectors.push({sector: loc.sector})
+                                    gh.sections.push({section: loc.section, sectors: sectors})
+                                }
+                            } else {
+                                addSensorToLocation(sensor, loc.greenhouse, null, null)
+                                let sectors = []
+                                sectors.push({sector: loc.sector})
+                                let sections = []
+                                sections.push({section: loc.section, sectors:sectors})
+                                greenhouses.push({
+                                    greenhouse: loc.greenhouse, 
+                                    sections:sections,
+                                    name: "Invernadero " + loc.greenhouse,
+                                    href: "/greenhouse-" + loc.greenhouse.toLowerCase(), 
+                                    id: loc.greenhouse})
+                            }
+                        }
+                    }
+                    greenhouses.sort(orderGreenhouses)
+                    res.status(200).json(greenhouses)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+
+        })
+        .catch(error => {
+            console.log(error)
+            res.status(400).send(error)
+        })    
+}
+
 
 /**
  * Body format
@@ -210,7 +312,8 @@ function getLocationFilter(locationIdArray, filterParam = "location") {
 module.exports = {
     getDataBySensorByLocation,
     getLocationDetails,
-    getRealTimeData
+    getRealTimeData,
+    getLocationWithRealTimeData
 }
 
 
@@ -326,10 +429,15 @@ function addSensorToLocation(sensor, greenhouse, section, sector) {
             section['sensorIds'] = sensorIds
 
             if (sector && sector.sector === sensor.location.sector) {
+                let sensors = []
                 if (sector.sensorIds) sensorIds = sector.sensorIds
                 else sensorIds = []
+                if (sector.sensors) sensors = sector.sensors
+                else sensors = []
                 if (sensorIds.indexOf(sensor.sensorId) === -1) sensorIds.push(sensor.sensorId)
                 sector['sensorIds'] = sensorIds
+                if (sensors.indexOf(sensor.sensor) === -1) sensors.push(sensor.sensor)
+                sector['sensors'] = sensors
             }
         }
     }
