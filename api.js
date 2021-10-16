@@ -169,6 +169,7 @@ const getRealTimeData = async (req, res) => {
 }
 
 const getLocationWithRealTimeData = async (req, res) => { 
+    const secondsForAverageData = 600
 
     return Reading
         .findAll({
@@ -194,14 +195,11 @@ const getLocationWithRealTimeData = async (req, res) => {
             ],
             attributes: [
                 [Sequelize.fn('ROUND', Sequelize.fn('AVG', Sequelize.col('"Reading"."value"')), 2), 'value'],
-                [Sequelize.fn('MAX', Sequelize.col('created_date')), 'date']],
+                [Sequelize.fn('MAX', Sequelize.literal(`to_timestamp(floor((extract('epoch' from \"Reading\".\"created_date\") / ${secondsForAverageData} )) * ${secondsForAverageData})`)), 'date']],
             group: ['"Sensor"."id"', '"Sensor"."name"', '"Location"."id"'],
             where: whereClause(req.query)
         })
         .then( readings => {
-            // let sensors = readings.map((read) => read.dataValues)
-            // console.log(reads)
-            // res.status(200).json(reads)
 
             let sensors = readings.map((read) => { 
                 let json = {}
@@ -211,8 +209,6 @@ const getLocationWithRealTimeData = async (req, res) => {
                 json['location'] = read.dataValues.Location.dataValues
                 return json
             })
-
-            // res.status(200).json(sensors)
             
             Location
                 .findAll({
@@ -418,14 +414,13 @@ function addSensorToLocation(sensor, greenhouse, section, sector) {
     if (greenhouse && greenhouse.greenhouse === sensor.location.greenhouse) {
         let sensorIds = []
         if (greenhouse.sensorIds) sensorIds = greenhouse.sensorIds
-        if (sensorIds.indexOf(sensor.sensorId) === -1) sensorIds.push(sensor.sensorId)
+        if (sensorIds.indexOf(sensor.sensor.id) === -1) sensorIds.push(sensor.sensor.id)
         greenhouse['sensorIds'] = sensorIds
-        console.log(sensorIds)
 
         if (section && section.section === sensor.location.section) {
             if (section.sensorIds) sensorIds = section.sensorIds
             else sensorIds = []
-            if (sensorIds.indexOf(sensor.sensorId) === -1) sensorIds.push(sensor.sensorId)
+            if (sensorIds.indexOf(sensor.sensor.id) === -1) sensorIds.push(sensor.sensor.id)
             section['sensorIds'] = sensorIds
 
             if (sector && sector.sector === sensor.location.sector) {
@@ -434,7 +429,7 @@ function addSensorToLocation(sensor, greenhouse, section, sector) {
                 else sensorIds = []
                 if (sector.sensors) sensors = sector.sensors
                 else sensors = []
-                if (sensorIds.indexOf(sensor.sensorId) === -1) sensorIds.push(sensor.sensorId)
+                if (sensorIds.indexOf(sensor.sensor.id) === -1) sensorIds.push(sensor.sensor.id)
                 sector['sensorIds'] = sensorIds
                 if (sensors.indexOf(sensor.sensor) === -1) sensors.push(sensor.sensor)
                 sector['sensors'] = sensors
