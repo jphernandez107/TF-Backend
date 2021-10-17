@@ -55,7 +55,6 @@ const getDataBySensorByLocation = async (req, res) => {
                 max: null,
                 min: null
             }
-            console.log(json)
             res.status(200).json(json)
         })
         .catch((error) => {
@@ -134,11 +133,13 @@ const getLocationDetails = async (req, res) => {
                 })
                 .catch(error => {
                     console.log(error)
+                    res.status(400).send(error)
                 })
 
         })
         .catch(error => {
             console.log(error)
+            res.status(400).send(error)
         })    
 }
 
@@ -155,8 +156,6 @@ const getRealTimeData = async (req, res) => {
         sqlQuery += 'INNER JOIN "locations" AS "Location" '
         sqlQuery += `ON "Reading"."location_id" = "Location"."id" ${locationFiltered} `
         sqlQuery += 'ORDER BY "Max" DESC'
-
-    console.log(sqlQuery)
 
     return db.sequelize.query(sqlQuery)
         .then((readings) => {
@@ -257,6 +256,7 @@ const getLocationWithRealTimeData = async (req, res) => {
                 })
                 .catch(error => {
                     console.log(error)
+                    res.status(400).send(error)
                 })
 
         })
